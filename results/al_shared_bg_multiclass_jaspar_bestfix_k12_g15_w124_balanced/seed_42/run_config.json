@@ -1,0 +1,27 @@
+{
+  "SEED": 42,
+  "SEQ_LEN": 500,
+  "BATCH_SIZE": 128,
+  "MAX_EPOCHS": 100,
+  "MIN_EPOCHS": 12,
+  "EARLY_STOP_PATIENCE": 8,
+  "LR": 0.0001,
+  "WEIGHT_DECAY": 0.0001,
+  "NUM_WORKERS": 4,
+  "CONV_OUT": 256,
+  "CONV_KERNEL": 12,
+  "N_CLASSES": 3,
+  "LABELS": [
+    "random_intergenic",
+    "shared_common",
+    "Al_specific"
+  ],
+  "AL_CLASS_ID": 2,
+  "FOCAL_GAMMA": 1.5,
+  "CLASS_WEIGHTS": [
+    1.0,
+    1.2,
+    2.4
+  ],
+  "BALANCE_RANDOM_INTERGENIC": true
+}

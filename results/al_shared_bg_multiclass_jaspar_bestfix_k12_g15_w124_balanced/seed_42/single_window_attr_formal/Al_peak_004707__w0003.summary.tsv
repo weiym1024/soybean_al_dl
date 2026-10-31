@@ -1,0 +1,2 @@
+window_id	target_class	prob_0	prob_1	prob_2	max_abs_position	max_abs_importance	mean_abs_importance	sum_positive_importance	sum_negative_importance	local_seq_21bp
+Al_peak_004707__w0003	2	0.12340030819177628	0.2725119888782501	0.6040876507759094	411	0.006096466910094023	0.0010395458666607738	0.3201291561126709	-0.1996438205242157	CCTTCAGAAACTCCACCATCC
