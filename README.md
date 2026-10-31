@@ -2,17 +2,9 @@
 
 ## Overview
 
-This repository contains the code, processed sequence windows, model checkpoint,
-data splits, motif-analysis inputs, and reference outputs supporting the
-CNN–BiLSTM analysis of chromatin accessibility in soybean roots under
-aluminum (Al) stress.
+This repository contains the computational code and supporting data for the CNN–BiLSTM analysis of chromatin accessibility in soybean roots under aluminum stress.
 
-The repository is a curated computational release, rather than a copy of the
-complete original research project.
-
-The available checkpoint supports independent inference and downstream
-interpretation. Full model retraining was not repeated during release
-validation.
+The workflow includes sequence-based classification of regulatory regions, chromosome-holdout evaluation, model interpretation using DeepLiftShap and saturation mutagenesis, de novo motif discovery, transcription factor motif annotation, and integration of regulatory sequence features with gene expression data.
 
 ## Model architecture and configuration
 
