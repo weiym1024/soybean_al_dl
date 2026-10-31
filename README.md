@@ -2,24 +2,20 @@
 
 ## Overview
 
-This repository contains the computational code and supporting data for the CNN–BiLSTM analysis of chromatin accessibility in soybean roots under aluminum stress.
+This repository contains computational code and supporting data for CNN–BiLSTM analysis of chromatin accessibility in soybean roots under aluminum (Al) stress.
 
 The workflow includes sequence-based classification of regulatory regions, chromosome-holdout evaluation, model interpretation using DeepLiftShap and saturation mutagenesis, de novo motif discovery, transcription factor motif annotation, and integration of regulatory sequence features with gene expression data.
 
 ## Model architecture and configuration
 
-The final model is a three-class CNN–BiLSTM classifier.
+The model is a three-class CNN–BiLSTM classifier:
 
-Classes:
-
-- 0: random_intergenic
-- 1: shared_common
-- 2: Al_specific
-
-Main configuration:
+- **0:** `random_intergenic`
+- **1:** `shared_common`
+- **2:** `Al_specific`
 
 | Parameter | Value |
-|---|---|
+|---|---:|
 | Input sequence length | 500 bp |
 | Random seed | 42 |
 | CNN output channels | 256 |
@@ -34,116 +30,67 @@ Main configuration:
 | Focal-loss gamma | 1.5 |
 | Class weights | 1.0, 1.2, 2.4 |
 
-The original training configuration is provided in `run_config.json`.
-
 ## Repository structure
 
 ```text
-data/
-  al_shared_bg_peak_windows.tsv
+soybean_al_dl/
+├── data/                  Processed peak/window metadata
+├── input/                 Input sequences and motif resources
+├── models/                Model-related files
+├── results/               Data splits and supporting analysis outputs
+├── scripts/               Training, prediction, interpretation and motif-analysis scripts
+├── README.md
+├── requirements.txt
+└── SOFTWARE_VERSIONS.tsv
+```
 
-input/
-  sequences/
-    al_shared_bg_peak_windows.fa
-  motif/
-    JASPAR2026_CORE_plants_non-redundant_pfms_meme.txt
+## Input data and data splitting
 
-scripts/
-  Training, prediction, attribution, mutagenesis,
-  motif interpretation, and figure-data preparation scripts.
+The processed dataset contains **62,301 sequence windows** representing **10,745 distinct peaks**.
 
-results/
-  al_shared_bg_multiclass_jaspar/
-    seed_42/
-      Original train/validation/test peak assignments.
+The original Seed 42 split assignments and the peaks with available sequence windows are summarized below:
 
-  al_shared_bg_multiclass_jaspar_bestfix_k12_g15_w124_balanced/
-    seed_42/
-      Final model checkpoint, prediction outputs,
-      effective data splits, and interpretation results.
-Input data and data splitting
-The processed dataset contains 62,301 sequence windows representing
-10,745 distinct peaks.
+| Split | Assigned peaks | Peaks with valid windows |
+|---|---:|---:|
+| Training | 7,432 | 6,522 |
+| Validation | 929 | 810 |
+| Testing | 929 | 818 |
+| **Total** | **9,290** | **8,150** |
 
-The original Seed 42 split assignments contain:
-Split	Assigned peaks	Peaks with valid windows
-Training	7,432	6,522
-Validation	929	810
-Testing	929	818
-Total	9,290	8,150
+A total of 1,140 assigned Al-specific peaks did not have corresponding windows in the processed window table (910 training, 119 validation, and 111 testing). These peaks were excluded when split assignments were matched to available sequence windows.
 
-A total of 1,140 assigned Al-specific peaks did not have corresponding
-windows in the released input table (910 training, 119 validation,
-and 111 testing).
+Class balancing was performed at the **window level for training only**. The validation and test sets were not balanced by this function.
 
-These peaks were excluded when the training script matched split
-assignments to the available sequence windows.
+## Model inference and performance evaluation
 
-The training script additionally performs class balancing at the
-window level. Validation and test sets are not balanced by this function.
-
-The original assignments and effective peak subsets are both preserved
-for traceability.
-Model inference and performance validation
-The final Seed 42 checkpoint was independently loaded using the
-released sequence inputs.
-
-Predictions were checked across all 62,301 windows.
-
-The validation confirmed identical predicted classes and agreement
-of class scores within numerical tolerance.
-
-Chromosome-holdout evaluation used 20 folds with distinct test chromosomes.
-Training, validation, and test assignments were checked for chromosome
-and peak-level overlap.
-
-The previously saved prediction outputs were independently used to
-recalculate classification performance.
+Model predictions were evaluated across 62,301 windows. Chromosome-holdout evaluation used 20 folds with distinct test chromosomes; training, validation and test assignments were checked for chromosome- and peak-level overlap.
 
 Mean peak-level performance across 20 folds:
-Metric	Mean	SD
-Macro AUROC	0.839861	0.022240
-Macro AUPR	0.727011	0.028811
-Al-specific AUROC	0.709265	0.036950
-Al-specific AUPR	0.549594	0.048228
 
-Peak-level class scores were obtained using max pooling and should
-not be interpreted as a jointly normalized probability distribution.
+| Metric | Mean | SD |
+|---|---:|---:|
+| Macro AUROC | 0.839861 | 0.022240 |
+| Macro AUPR | 0.727011 | 0.028811 |
+| Al-specific AUROC | 0.709265 | 0.036950 |
+| Al-specific AUPR | 0.549594 | 0.048228 |
 
-The full training of the 20 fold-specific models was not rerun.
-Model interpretation
-The released analysis includes:
-- DeepLiftShap attribution;
-- GmALS3-associated window interpretation;
-- single-nucleotide saturation mutagenesis;
-- attribution-derived positive seqlet extraction;
-- de novo motif discovery;
-- motif comparison against JASPAR 2026;
-- FIMO motif scanning;
-- motif–gene matrix construction.
-For the GmALS3-associated window Al_peak_004707__w0003,
-the multiclass saturation mutagenesis analysis evaluated
-1,500 alternate-base substitutions across 500 positions.
+Peak-level class scores were obtained using max pooling and should not be interpreted as a jointly normalized probability distribution.
 
-The saturation mutagenesis results were independently reproduced.
+## Model interpretation
 
-Single-window DeepLiftShap attribution showed high positional
-agreement with the previously saved results, but not exact
-identity to the historic attribution arrays.
+The analysis includes DeepLiftShap attribution, saturation mutagenesis, attribution-derived seqlet extraction, and downstream motif identification.
 
-The genome-wide attribution files are supplied as saved
-intermediate results and were not all independently recomputed.
-Motif discovery
-Positive and background seqlet extraction produced:
-- 2,748 positive seqlets;
-- 2,748 background seqlets;
-- seqlet length: 31 bp.
-The seqlet FASTA and tabular outputs were reproduced byte-for-byte.
+For the GmALS3-associated window `Al_peak_004707__w0003`, multiclass saturation mutagenesis evaluated **1,500 alternate-base substitutions** across 500 positions.
 
-The original motif discovery used MEME Suite 5.5.7.
-Independent reproduction used MEME Suite 5.5.9.
+## Motif discovery
+
+Positive and background seqlet extraction produced **2,748 positive seqlets** and **2,748 background seqlets**, each 31 bp long.
+
+Original motif discovery used MEME Suite 5.5.7; the released workflow was checked using MEME Suite 5.5.9.
 
 STREME parameters:
+
+```bash
 streme \
   --p positive_seqlets.fa \
   --n background_seqlets.fa \
@@ -152,76 +99,34 @@ streme \
   --maxw 20 \
   --nmotifs 10 \
   --oc streme_output
+```
 
+All ten motif consensuses and E-values agreed between the original and comparison analyses. **STREME-1** met an E-value threshold of 0.05; the other reported motifs are exploratory candidates.
 
-All ten motif consensuses and reported E-values agreed
-between the original and independently reproduced analyses.
+TOMTOM was run against **JASPAR 2026 CORE Plants non-redundant** motifs using Pearson similarity and a minimum motif overlap of 5 bp. The analysis reported 180 motif matches.
 
-Only STREME-1 met the conventional E-value < 0.05 criterion.
-The remaining motifs should be interpreted as exploratory candidates.
+## FIMO motif scanning
 
-TOMTOM was run using:
-- JASPAR 2026 CORE Plants non-redundant motifs;
-- Pearson motif similarity;
-- minimum overlap of 5 bp.
-All 180 reported TOMTOM matches were reproduced, including
-matching motif identifiers, scores, and statistical values.
-FIMO validation
-FIMO motif scanning was independently reproduced with
-a p-value threshold of 1e-4.
-Dataset	Matching hits
-Al-specific windows	6,965
-Figure 5C Al-specific windows	6,965
-Figure 5C shared/common windows	6,413
+FIMO was run with a p-value threshold of `1e-4`.
 
-All hit identifiers, positions, matched sequences, scores,
-p-values, and q-values agreed with the original results.
-Motif–gene analysis
-Figure 5D integrates motif hits with peak-associated gene
-annotations, RNA-seq results, and model attribution scores.
+| Dataset | Motif hits |
+|---|---:|
+| Al-specific windows | 6,965 |
+| Figure 5C Al-specific windows | 6,965 |
+| Figure 5C shared/common windows | 6,413 |
 
-Independent regeneration reproduced:
-- 2,200 complete motif–gene records;
-- 52 selected visualization records;
-- all 20 fields within numerical tolerance.
-GmALS3 (Glyma.10G047100) was associated with STREME-1 and
-STREME-2 records in the selected matrix.
+## Motif–gene analysis
 
-These computational associations do not, by themselves,
-demonstrate direct transcription-factor binding or causal regulation.
-Software requirements
-See:
-- requirements.txt for core Python package versions;
-- SOFTWARE_VERSIONS.tsv for the software versions observed
-  in the validation environment.
-MEME Suite is required separately for STREME, TOMTOM, and FIMO.
+Figure 5D integrates motif hits with peak-associated gene annotations, RNA-seq results and attribution scores. The matrix includes **2,200 motif–gene records** and **52 selected visualization records**.
 
-The precise GPU/CUDA environment may affect the reproducibility
-of model training, even with the same random seed.
-Data integrity
-The repository includes a SHA256 file manifest.
+GmALS3 (`Glyma.10G047100`) is represented by STREME-1 and STREME-2 entries in the selected matrix. Motif matches and computational gene associations do not by themselves establish direct binding or causal regulation.
 
-Run:
-python scripts/verify_release_sha256.py
+## Software requirements
 
+Core Python dependencies are listed in [`requirements.txt`](requirements.txt); installed software versions are recorded in [`SOFTWARE_VERSIONS.tsv`](SOFTWARE_VERSIONS.tsv).
 
-to check the integrity of the released files.
-Reproducibility scope
-Independently validated:
-1. Seed 42 model inference.
-2. Chromosome-holdout split integrity and performance recalculation.
-3. GmALS3 saturation mutagenesis.
-4. Positive/background seqlet extraction.
-5. STREME motif discovery summary.
-6. TOMTOM motif matches.
-7. Three FIMO datasets.
-8. Figure 5D motif–gene tables.
-Not independently rerun:
-1. Full Seed 42 model training.
-2. Full 20-fold model training.
-3. Genome-wide DeepLiftShap attribution for all windows.
-The trained model checkpoint and saved intermediate results
-are provided to support verification and downstream reuse.
-Citation and data availability
-Publication details, permanent repository URL, and archival DOI
-will be added after the public release is finalized.
+MEME Suite is required separately for STREME, TOMTOM and FIMO.
+
+## Citation
+
+Publication details will be added when available.
